@@ -255,22 +255,29 @@ def run_group_stage(
     model: PoissonModel,
     elo_ratings: dict,
     n_sims: int = N_SIMS,
-) -> pd.DataFrame:
+) -> tuple:
     """
     Monte Carlo the group stage n_sims times.
 
-    Returns a DataFrame with one row per team, sorted by advance_prob:
-      team, group, advance_prob, top2_prob, via_third_prob
+    Returns (advance_df, rank_df):
+      advance_df — one row per team, sorted by advance_prob
+                   columns: team, group, advance_prob, top2_prob, via_third_prob
+      rank_df    — one row per team with per-position finish probabilities
+                   columns: team, group, p1, p2, p3, p4, mode_rank, expected_rank
     """
     all_teams = [(team, group) for group, teams in GROUPS.items() for team in teams]
     advance_counts: dict = {t: 0 for t, _ in all_teams}
-    top2_counts: dict = {t: 0 for t, _ in all_teams}
+    top2_counts:   dict = {t: 0 for t, _ in all_teams}
+    rank_counts:   dict = {t: {1: 0, 2: 0, 3: 0, 4: 0} for t, _ in all_teams}
 
     for _ in range(n_sims):
         third_entries = []
 
         for group_name, teams in GROUPS.items():
             standings = simulate_group(teams, model, elo_ratings)
+
+            for _, row in standings.iterrows():
+                rank_counts[row["team"]][int(row["rank"])] += 1
 
             top2 = standings[standings["rank"] <= 2]["team"].tolist()
             for t in top2:
@@ -279,33 +286,50 @@ def run_group_stage(
 
             row3 = standings[standings["rank"] == 3].iloc[0]
             third_entries.append({
-                "team": row3["team"],
-                "group": group_name,
+                "team":   row3["team"],
+                "group":  group_name,
                 "points": int(row3["points"]),
-                "gd": int(row3["gd"]),
-                "gf": int(row3["gf"]),
+                "gd":     int(row3["gd"]),
+                "gf":     int(row3["gf"]),
             })
 
         best_thirds = select_best_thirds(third_entries)
         for t in best_thirds:
             advance_counts[t] += 1
 
-    rows = []
+    advance_rows = []
+    rank_rows = []
     for team, group in all_teams:
         via_third = advance_counts[team] - top2_counts[team]
-        rows.append({
-            "team": team,
-            "group": group,
-            "advance_prob": round(advance_counts[team] / n_sims, 4),
-            "top2_prob": round(top2_counts[team] / n_sims, 4),
+        advance_rows.append({
+            "team":           team,
+            "group":          group,
+            "advance_prob":   round(advance_counts[team] / n_sims, 4),
+            "top2_prob":      round(top2_counts[team] / n_sims, 4),
             "via_third_prob": round(via_third / n_sims, 4),
         })
 
-    return (
-        pd.DataFrame(rows)
+        rc = rank_counts[team]
+        p1, p2, p3, p4 = rc[1]/n_sims, rc[2]/n_sims, rc[3]/n_sims, rc[4]/n_sims
+        mode_rank = max(rc, key=rc.__getitem__)
+        rank_rows.append({
+            "team":          team,
+            "group":         group,
+            "p1":            round(p1, 4),
+            "p2":            round(p2, 4),
+            "p3":            round(p3, 4),
+            "p4":            round(p4, 4),
+            "mode_rank":     mode_rank,
+            "expected_rank": round(1*p1 + 2*p2 + 3*p3 + 4*p4, 3),
+        })
+
+    advance_df = (
+        pd.DataFrame(advance_rows)
         .sort_values("advance_prob", ascending=False)
         .reset_index(drop=True)
     )
+    rank_df = pd.DataFrame(rank_rows)
+    return advance_df, rank_df
 
 
 def write_predictions(
@@ -321,6 +345,127 @@ def write_predictions(
     df.to_csv(out_path, index=False)
     print(f"Predictions written → {out_path}")
     return out_path
+
+
+# ---------------------------------------------------------------------------
+# Human-readable group-stage output
+# ---------------------------------------------------------------------------
+
+_NAME_W = 25          # column width for team names (fits "Bosnia and Herzegovina")
+_COL_W  = 7           # width of each percentage column
+_RANK_LABEL = {1: "1st ✓", 2: "2nd ✓", 3: "3rd", 4: "4th"}
+
+
+def _pct(p: float) -> str:
+    return f"{p*100:.1f}%".rjust(_COL_W)
+
+
+def _build_group_summary(rank_df: pd.DataFrame, advance_df: pd.DataFrame) -> pd.DataFrame:
+    """Merge rank and via_third info; add projected-position label; sort by expected_rank."""
+    df = rank_df.merge(advance_df[["team", "via_third_prob"]], on="team")
+    df["projected"] = df["mode_rank"].map(_RANK_LABEL)
+    return df.sort_values(["group", "expected_rank"]).reset_index(drop=True)
+
+
+def _make_group_block(group_name: str, summary: pd.DataFrame) -> str:
+    gdf = summary[summary["group"] == group_name]
+    header = (
+        f"{'GROUP ' + group_name:<{_NAME_W}}  "
+        f"{'P(1st)':>{_COL_W}}  {'P(2nd)':>{_COL_W}}  "
+        f"{'P(3rd)':>{_COL_W}}  {'P(4th)':>{_COL_W}}  Projected"
+    )
+    sep = "-" * len(header)
+    lines = [header, sep]
+    for _, row in gdf.iterrows():
+        lines.append(
+            f"{row['team']:<{_NAME_W}}  "
+            f"{_pct(row['p1'])}  {_pct(row['p2'])}  "
+            f"{_pct(row['p3'])}  {_pct(row['p4'])}  "
+            f"{row['projected']}"
+        )
+    return "\n".join(lines)
+
+
+def _make_thirds_note(advance_df: pd.DataFrame) -> str:
+    """
+    Identify the 8 most likely third-place qualifiers across all 12 groups.
+    Each group contributes exactly one projected third (highest via_third_prob).
+    Those 12 thirds are then ranked and the top 8 are the projected qualifiers.
+    """
+    thirds = (
+        advance_df[advance_df["via_third_prob"] > 0]
+        .sort_values(["group", "via_third_prob"], ascending=[True, False])
+        .groupby("group")
+        .first()
+        .reset_index()
+        [["group", "team", "via_third_prob"]]
+        .sort_values("via_third_prob", ascending=False)
+        .reset_index(drop=True)
+    )
+    in_top8 = thirds.head(8)
+    out = thirds.tail(len(thirds) - 8)
+
+    width = 50
+    lines = [
+        "=" * width,
+        "PROJECTED THIRD-PLACE QUALIFIERS  (best 8 of 12)",
+        "=" * width,
+        "IN:",
+    ]
+    for _, r in in_top8.iterrows():
+        lines.append(f"  Group {r['group']}: {r['team']:<24}  ({r['via_third_prob']*100:.1f}%)")
+    if not out.empty:
+        lines.append("OUT:")
+        for _, r in out.iterrows():
+            lines.append(f"  Group {r['group']}: {r['team']:<24}  ({r['via_third_prob']*100:.1f}%)")
+    lines.append("")
+    lines.append("✓ = auto-qualifies (top 2 in group)")
+    return "\n".join(lines)
+
+
+def print_group_tables(rank_df: pd.DataFrame, advance_df: pd.DataFrame) -> None:
+    summary = _build_group_summary(rank_df, advance_df)
+    print("\n" + "=" * 65)
+    print("GROUP STAGE PROJECTIONS  (20,000 simulations)")
+    print("=" * 65)
+    for group_name in GROUPS:
+        print()
+        print(_make_group_block(group_name, summary))
+    print()
+    print(_make_thirds_note(advance_df))
+
+
+def write_group_readable_csv(
+    rank_df: pd.DataFrame,
+    advance_df: pd.DataFrame,
+    path: Path,
+) -> Path:
+    summary = _build_group_summary(rank_df, advance_df)
+    out = summary[["group", "team", "p1", "p2", "p3", "p4",
+                   "mode_rank", "expected_rank", "via_third_prob", "projected"]]
+    PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
+    out.to_csv(path, index=False)
+    print(f"Group predictions CSV → {path}")
+    return path
+
+
+def write_group_readable_txt(
+    rank_df: pd.DataFrame,
+    advance_df: pd.DataFrame,
+    path: Path,
+) -> Path:
+    summary = _build_group_summary(rank_df, advance_df)
+    blocks = []
+    blocks.append("WC 2026 GROUP STAGE PROJECTIONS  (20,000 Monte Carlo simulations)")
+    blocks.append("=" * 65)
+    for group_name in GROUPS:
+        blocks.append(_make_group_block(group_name, summary))
+    blocks.append(_make_thirds_note(advance_df))
+
+    PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n\n".join(blocks) + "\n", encoding="utf-8")
+    print(f"Group predictions TXT  → {path}")
+    return path
 
 
 # ---------------------------------------------------------------------------
@@ -344,15 +489,23 @@ def main(n_sims: int = N_SIMS, min_date: Optional[str] = "2010-01-01") -> tuple:
     print(f"  Fitted on {len(model.teams)} teams")
 
     print(f"\nRunning {n_sims:,} group-stage simulations...")
-    results = run_group_stage(model, elo_ratings, n_sims=n_sims)
+    advance_df, rank_df = run_group_stage(model, elo_ratings, n_sims=n_sims)
 
     print("\nTop 10 by advancement probability:")
-    print(results.head(10).to_string(index=False))
+    print(advance_df.head(10).to_string(index=False))
+
+    print_group_tables(rank_df, advance_df)
 
     today = datetime.now().strftime("%Y-%m-%d")
-    fixed_path = PREDICTIONS_DIR / f"group_stage_pre_tournament_{today}.csv"
-    out_path = write_predictions(results, out_path=fixed_path)
-    return results, out_path
+    adv_path  = PREDICTIONS_DIR / f"group_stage_pre_tournament_{today}.csv"
+    csv_path  = PREDICTIONS_DIR / f"group_predictions_readable_{today}.csv"
+    txt_path  = PREDICTIONS_DIR / f"group_predictions_{today}.txt"
+
+    write_predictions(advance_df, out_path=adv_path)
+    write_group_readable_csv(rank_df, advance_df, csv_path)
+    write_group_readable_txt(rank_df, advance_df, txt_path)
+
+    return advance_df, rank_df
 
 
 if __name__ == "__main__":
