@@ -39,18 +39,18 @@ N_SIMS = 20_000
 # 12 groups × 4 teams = 48 teams.
 # ---------------------------------------------------------------------------
 GROUPS: dict = {
-    "A": ["USA", "Panama", "Honduras", "Colombia"],
-    "B": ["Mexico", "Ecuador", "Jamaica", "Martinique"],
-    "C": ["Argentina", "Chile", "Peru", "Venezuela"],
-    "D": ["Uruguay", "Bolivia", "Paraguay", "Costa Rica"],
-    "E": ["Brazil", "Colombia", "Bolivia", "El Salvador"],
-    "F": ["France", "Belgium", "Austria", "Slovakia"],
-    "G": ["England", "Netherlands", "Germany", "Switzerland"],
-    "H": ["Spain", "Portugal", "Croatia", "Serbia"],
-    "I": ["Morocco", "Senegal", "Egypt", "Tunisia"],
-    "J": ["Cameroon", "Nigeria", "Ghana", "Ivory Coast"],
-    "K": ["Japan", "South Korea", "Australia", "Iran"],
-    "L": ["Saudi Arabia", "Qatar", "Iraq", "United Arab Emirates"],
+    "A": ["Mexico", "South Africa", "South Korea", "Czech Republic"],
+    "B": ["Canada", "Bosnia and Herzegovina", "Qatar", "Switzerland"],
+    "C": ["Brazil", "Morocco", "Haiti", "Scotland"],
+    "D": ["United States", "Paraguay", "Australia", "Turkey"],
+    "E": ["Germany", "Curaçao", "Ivory Coast", "Ecuador"],
+    "F": ["Netherlands", "Japan", "Sweden", "Tunisia"],
+    "G": ["Belgium", "Egypt", "Iran", "New Zealand"],
+    "H": ["Spain", "Cape Verde", "Saudi Arabia", "Uruguay"],
+    "I": ["France", "Senegal", "Iraq", "Norway"],
+    "J": ["Argentina", "Algeria", "Austria", "Jordan"],
+    "K": ["Portugal", "DR Congo", "Uzbekistan", "Colombia"],
+    "L": ["England", "Croatia", "Ghana", "Panama"],
 }
 
 # Teams with no Poisson history fall back to this default rating.
@@ -122,8 +122,7 @@ def _sort_tied_group(tied: list, records: dict, h2h: dict) -> list:
 
     # 1. Goal difference (overall)
     by_gd = sorted(tied, key=lambda t: -records[t]["gd"])
-    if by_gd[0] != by_gd[-1] or records[by_gd[0]]["gd"] != records[by_gd[-1]]["gd"]:
-        # At least one team separable by GD — but may still have internal ties.
+    if records[by_gd[0]]["gd"] != records[by_gd[-1]]["gd"]:
         return _sort_with_key(tied, records, h2h, lambda t: -records[t]["gd"])
 
     # 2. Goals scored (overall)
@@ -309,11 +308,16 @@ def run_group_stage(
     )
 
 
-def write_predictions(df: pd.DataFrame, label: str = "group_stage") -> Path:
-    """Write a timestamped CSV to predictions/."""
+def write_predictions(
+    df: pd.DataFrame,
+    label: str = "group_stage",
+    out_path: Optional[Path] = None,
+) -> Path:
+    """Write predictions CSV to predictions/. Uses a fixed out_path if given, else timestamped."""
     PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = PREDICTIONS_DIR / f"{ts}_{label}.csv"
+    if out_path is None:
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        out_path = PREDICTIONS_DIR / f"{ts}_{label}.csv"
     df.to_csv(out_path, index=False)
     print(f"Predictions written → {out_path}")
     return out_path
@@ -342,10 +346,12 @@ def main(n_sims: int = N_SIMS, min_date: Optional[str] = "2010-01-01") -> tuple:
     print(f"\nRunning {n_sims:,} group-stage simulations...")
     results = run_group_stage(model, elo_ratings, n_sims=n_sims)
 
-    print("\nTop 20 by advancement probability:")
-    print(results.head(20).to_string(index=False))
+    print("\nTop 10 by advancement probability:")
+    print(results.head(10).to_string(index=False))
 
-    out_path = write_predictions(results, label="group_stage")
+    today = datetime.now().strftime("%Y-%m-%d")
+    fixed_path = PREDICTIONS_DIR / f"group_stage_pre_tournament_{today}.csv"
+    out_path = write_predictions(results, out_path=fixed_path)
     return results, out_path
 
 

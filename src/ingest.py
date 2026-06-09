@@ -14,7 +14,6 @@ from typing import Optional
 
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 ELO_CACHE = DATA_DIR / "elo_ratings.csv"
@@ -112,30 +111,48 @@ def scrape_elo_ratings(force_refresh: bool = False) -> "pd.Series":
 
 
 def _scrape_html(headers: dict) -> list:
-    """Scrape Elo ratings from the HTML world rankings table."""
-    url = "https://www.eloratings.net/World"
+    """
+    Scrape Elo ratings from eloratings.net TSV data files.
+
+    The site is a JS SPA — no HTML table is served. Data comes from two TSV
+    endpoints:
+      en.teams.tsv  — code<TAB>name[<TAB>shorter variants...]
+      World.tsv     — local_rank<TAB>global_rank<TAB>code<TAB>elo<TAB>...
+    """
+    base = "https://www.eloratings.net"
     try:
         time.sleep(_REQUEST_THROTTLE)
-        resp = requests.get(url, headers=headers, timeout=30)
-        resp.raise_for_status()
+        teams_resp = requests.get(f"{base}/en.teams.tsv", headers=headers, timeout=30)
+        teams_resp.raise_for_status()
+        teams_resp.encoding = "utf-8"
     except Exception as e:
-        print(f"HTML fetch failed: {e}")
+        print(f"en.teams.tsv fetch failed: {e}")
         return []
 
-    soup = BeautifulSoup(resp.text, "lxml")
-    rows = []
+    code_to_name: dict = {}
+    for line in teams_resp.text.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2 and not parts[0].endswith("_loc"):
+            code_to_name[parts[0]] = parts[1]
 
-    # The site uses <tr> rows; columns vary by version.
-    # We look for the numeric Elo value (1000–2200 range) in each row.
-    for tr in soup.find_all("tr"):
-        cells = [td.get_text(strip=True) for td in tr.find_all("td")]
-        if len(cells) < 3:
+    try:
+        time.sleep(_REQUEST_THROTTLE)
+        world_resp = requests.get(f"{base}/World.tsv", headers=headers, timeout=30)
+        world_resp.raise_for_status()
+        world_resp.encoding = "utf-8"
+    except Exception as e:
+        print(f"World.tsv fetch failed: {e}")
+        return []
+
+    rows = []
+    for line in world_resp.text.splitlines():
+        parts = line.split("\t")
+        if len(parts) < 4:
             continue
         try:
-            # Rank in col 0, team name in col 1, rating in col 2
-            int(cells[0])          # rank — must be numeric
-            team = cells[1]
-            elo = int(cells[2].replace(",", "").replace(".", ""))
+            code = parts[2]
+            elo = int(parts[3])
+            team = code_to_name.get(code, code)
             if 900 <= elo <= 2400 and team:
                 rows.append((team, elo))
         except (ValueError, IndexError):
@@ -245,7 +262,25 @@ def load_wc_results(csv_path: Optional[Path] = None) -> pd.DataFrame:
     return df.sort_values("date").reset_index(drop=True)
 
 
+def debug_elo_html() -> None:
+    """Fetch eloratings.net/World and print the first 3000 chars of raw HTML."""
+    url = "https://www.eloratings.net/World"
+    headers = {"User-Agent": "wc2026-model/1.0 (research; non-commercial)"}
+    resp = requests.get(url, headers=headers, timeout=30)
+    resp.raise_for_status()
+    print(f"Status: {resp.status_code}  Content-Type: {resp.headers.get('Content-Type', '?')}")
+    print(f"Response length: {len(resp.text):,} chars\n")
+    print("--- first 3000 chars ---")
+    print(resp.text[:3000])
+    print("--- end ---")
+
+
 if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "debug":
+        debug_elo_html()
+        sys.exit(0)
+
     print("Loading historical results...")
     df = load_historical_results()
     print(f"  {len(df):,} matches, {df['date'].min().date()} – {df['date'].max().date()}")
