@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtualenv
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data — keep structure but ignore large downloaded files
+data/*.csv
+data/*.json
+!data/.gitkeep
+
+# Keep prediction CSVs (they are outputs we want to version)
+!predictions/*.csv
+
+# Model cache
+data/poisson_params.json
+data/evaluation_log.json
+data/elo_ratings.csv
+
+# Env
+.env
