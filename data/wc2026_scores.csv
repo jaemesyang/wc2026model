@@ -1,0 +1,9 @@
+match_id,home,away,hg,ag,outcome,p_home,p_draw,p_away,brier,logloss,date_scored
+Mexico_vs_South Africa,Mexico,South Africa,2,0,H,0.6135,0.2461,0.1404,0.2296,0.4885,2026-06-14
+South Korea_vs_Czech Republic,South Korea,Czech Republic,2,1,H,0.581,0.2325,0.1865,0.2644,0.543,2026-06-14
+Bosnia and Herzegovina_vs_Canada,Bosnia and Herzegovina,Canada,1,1,D,0.0934,0.1947,0.7119,1.164,1.6364,2026-06-14
+Australia_vs_Turkey,Australia,Turkey,2,0,H,0.618,0.225,0.157,0.2213,0.4813,2026-06-14
+Haiti_vs_Scotland,Haiti,Scotland,0,1,A,0.3188,0.2627,0.4185,0.5088,0.871,2026-06-14
+Brazil_vs_Morocco,Brazil,Morocco,1,1,D,0.4381,0.3281,0.2339,0.6981,1.1146,2026-06-14
+Qatar_vs_Switzerland,Qatar,Switzerland,1,1,D,0.1971,0.2332,0.5698,0.9515,1.456,2026-06-14
+United States_vs_Paraguay,United States,Paraguay,4,1,H,0.3807,0.3082,0.3111,0.5752,0.9656,2026-06-14
