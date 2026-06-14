@@ -33,10 +33,19 @@ data/*.csv
 data/*.json
 !data/.gitkeep
 
+# Track live tournament data and locked model snapshot
+!data/wc2026_results.csv
+!data/wc2026_scores.csv
+!data/poisson_params_pretournament.json
+
 # Keep prediction CSVs (they are outputs we want to version)
 !predictions/*.csv
 
-# Model cache
+# Output dir — timestamped run files; track them
+!output/*.csv
+!output/*.txt
+
+# Model cache and Elo cache (regenerated; don't version)
 data/poisson_params.json
 data/evaluation_log.json
 data/elo_ratings.csv

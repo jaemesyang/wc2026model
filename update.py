@@ -279,10 +279,20 @@ def _print_comparison(new_df: pd.DataFrame, baseline_path: Path, known: dict) ->
 # CLI commands
 # ---------------------------------------------------------------------------
 
+_ROOT = Path(__file__).parent
+_PREDICTIONS_DIR = _ROOT / "predictions"
+
+
 def _latest_pretournament_csv() -> Path:
-    """Return the most recent group_stage_pre_tournament_*.csv, if any."""
-    candidates = sorted(PREDICTIONS_DIR.glob("group_stage_pre_tournament_*.csv"))
-    return candidates[-1] if candidates else None
+    """
+    Return the locked pre-tournament CSV.
+    Checks project root first (canonical location), then predictions/ as fallback.
+    """
+    root_candidates = sorted(_ROOT.glob("group_stage_pre_tournament_*.csv"))
+    if root_candidates:
+        return root_candidates[-1]
+    pred_candidates = sorted(_PREDICTIONS_DIR.glob("group_stage_pre_tournament_*.csv"))
+    return pred_candidates[-1] if pred_candidates else None
 
 
 def cmd_record(args: list) -> None:

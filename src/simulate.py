@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from ingest import load_historical_results, scrape_elo_ratings
 from models import PoissonModel, elo_win_prob
 
-PREDICTIONS_DIR = Path(__file__).parent.parent / "predictions"
+PREDICTIONS_DIR = Path(__file__).parent.parent / "output"
 N_SIMS = 20_000
 
 # ---------------------------------------------------------------------------
@@ -497,7 +497,9 @@ def main(n_sims: int = N_SIMS, min_date: Optional[str] = "2010-01-01") -> tuple:
     print_group_tables(rank_df, advance_df)
 
     today = datetime.now().strftime("%Y-%m-%d")
-    adv_path  = PREDICTIONS_DIR / f"group_stage_pre_tournament_{today}.csv"
+    # pre_tournament stays in predictions/ as the locked commitment artifact
+    _pred_dir = Path(__file__).parent.parent / "predictions"
+    adv_path  = _pred_dir / f"group_stage_pre_tournament_{today}.csv"
     csv_path  = PREDICTIONS_DIR / f"group_predictions_readable_{today}.csv"
     txt_path  = PREDICTIONS_DIR / f"group_predictions_{today}.txt"
 
