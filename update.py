@@ -296,23 +296,38 @@ def _latest_pretournament_csv() -> Path:
 
 
 def cmd_record(args: list) -> None:
-    """record <home_team> <home_score> <away_score> <away_team> [date]"""
-    if len(args) < 4:
-        sys.exit("Usage: update.py record <home_team> <home_score> <away_score> <away_team> [date]")
+    """record "HOME hg AWAY ag" [...] [--date YYYY-MM-DD]"""
+    if not args:
+        sys.exit('Usage: update.py record "HOME hg AWAY ag" [...] [--date YYYY-MM-DD]')
 
-    home_team  = args[0]
-    home_score = int(args[1])
-    away_score = int(args[2])
-    away_team  = args[3]
-    date       = args[4] if len(args) >= 5 else datetime.now().strftime("%Y-%m-%d")
+    from score import _parse_result_str, _resolve_team
 
-    record_result({
-        "date":       date,
-        "home_team":  home_team,
-        "away_team":  away_team,
-        "home_score": home_score,
-        "away_score": away_score,
-    })
+    date_val = datetime.now().strftime("%Y-%m-%d")
+    result_strs = []
+    i = 0
+    while i < len(args):
+        if args[i] == "--date" and i + 1 < len(args):
+            date_val = args[i + 1]
+            i += 2
+        else:
+            result_strs.append(args[i])
+            i += 1
+
+    for s in result_strs:
+        try:
+            home_raw, hg, away_raw, ag = _parse_result_str(s)
+            home = _resolve_team(home_raw)
+            away = _resolve_team(away_raw)
+        except ValueError as e:
+            print(f"ERROR '{s}': {e}", file=sys.stderr)
+            continue
+        record_result({
+            "date":       date_val,
+            "home_team":  home,
+            "away_team":  away,
+            "home_score": hg,
+            "away_score": ag,
+        })
 
     refresh_predictions(baseline_csv=_latest_pretournament_csv())
 
