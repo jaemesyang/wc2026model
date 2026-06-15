@@ -1,0 +1,107 @@
+WC 2026 GROUP STAGE PROJECTIONS  (20,000 Monte Carlo simulations)
+
+=================================================================
+
+GROUP A                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Mexico                       57.8%    33.5%     8.0%     0.8%  1st ✓
+South Korea                  39.2%    48.2%    11.3%     1.3%  2nd ✓
+Czech Republic                2.0%    10.3%    46.9%    40.8%  3rd
+South Africa                  1.1%     8.0%    33.8%    57.2%  4th
+
+GROUP B                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Canada                       42.2%    27.3%    21.7%     8.7%  1st ✓
+Switzerland                  36.7%    31.4%    21.7%    10.2%  1st ✓
+Qatar                        15.3%    26.2%    30.7%    27.8%  3rd
+Bosnia and Herzegovina        5.8%    15.1%    25.8%    53.3%  4th
+
+GROUP C                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Brazil                       70.6%    22.0%     6.3%     1.1%  1st ✓
+Morocco                      21.2%    55.1%    18.7%     5.0%  2nd ✓
+Scotland                      7.8%    21.7%    65.4%     5.2%  3rd
+Haiti                         0.5%     1.2%     9.6%    88.7%  4th
+
+GROUP D                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Australia                    48.8%    40.7%    10.0%     0.6%  1st ✓
+United States                48.1%    40.9%    10.0%     0.9%  1st ✓
+Paraguay                      1.8%    10.3%    46.2%    41.6%  3rd
+Turkey                        1.3%     8.1%    33.8%    56.8%  4th
+
+GROUP E                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Germany                      61.1%    22.0%    16.6%     0.4%  1st ✓
+Ivory Coast                  32.7%    42.4%    24.1%     0.8%  2nd ✓
+Ecuador                       6.0%    33.9%    51.7%     8.3%  3rd
+Curaçao                       0.2%     1.7%     7.6%    90.5%  4th
+
+GROUP F                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Japan                        48.5%    34.7%    12.3%     4.5%  1st ✓
+Netherlands                  30.4%    40.5%    20.2%     8.9%  2nd ✓
+Sweden                       18.9%    22.9%    52.9%     5.3%  3rd
+Tunisia                       2.2%     1.9%    14.6%    81.4%  4th
+
+GROUP G                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Belgium                      37.5%    28.3%    20.0%    14.3%  1st ✓
+Iran                         34.0%    29.0%    22.3%    14.6%  1st ✓
+New Zealand                  15.5%    22.1%    28.3%    34.2%  4th
+Egypt                        13.0%    20.7%    29.4%    36.9%  4th
+
+GROUP H                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Spain                        58.1%    31.5%     8.3%     2.0%  1st ✓
+Uruguay                      35.7%    45.4%    15.1%     3.8%  2nd ✓
+Saudi Arabia                  4.8%    16.1%    46.6%    32.5%  3rd
+Cape Verde                    1.4%     7.0%    29.9%    61.7%  4th
+
+GROUP I                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+France                       53.5%    26.1%    13.6%     6.8%  1st ✓
+Senegal                      22.0%    30.3%    26.7%    21.1%  2nd ✓
+Norway                       14.1%    23.2%    29.7%    33.0%  4th
+Iraq                         10.4%    20.5%    30.0%    39.1%  4th
+
+GROUP J                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Argentina                    78.3%    16.2%     4.5%     1.1%  1st ✓
+Algeria                      11.7%    39.0%    29.6%    19.7%  2nd ✓
+Austria                       6.9%    27.2%    35.5%    30.5%  3rd
+Jordan                        3.2%    17.6%    30.4%    48.8%  4th
+
+GROUP K                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+Colombia                     52.3%    28.4%    13.4%     5.9%  1st ✓
+Portugal                     32.4%    35.2%    21.1%    11.3%  2nd ✓
+Uzbekistan                   10.2%    22.2%    35.9%    31.8%  3rd
+DR Congo                      5.1%    14.3%    29.7%    50.9%  4th
+
+GROUP L                     P(1st)   P(2nd)   P(3rd)   P(4th)  Projected
+------------------------------------------------------------------------
+England                      57.8%    25.7%    12.1%     4.5%  1st ✓
+Croatia                      23.7%    34.6%    25.7%    16.0%  2nd ✓
+Panama                       12.4%    23.8%    32.9%    30.9%  3rd
+Ghana                         6.2%    15.9%    29.4%    48.6%  4th
+
+==================================================
+PROJECTED THIRD-PLACE QUALIFIERS  (best 8 of 12)
+==================================================
+IN:
+  Group F: Sweden                    (46.8%)
+  Group E: Ecuador                   (41.0%)
+  Group C: Scotland                  (39.3%)
+  Group D: Paraguay                  (28.4%)
+  Group A: Czech Republic            (26.3%)
+  Group H: Saudi Arabia              (25.3%)
+  Group B: Qatar                     (21.9%)
+  Group K: Uzbekistan                (21.2%)
+OUT:
+  Group L: Panama                    (20.5%)
+  Group J: Austria                   (19.9%)
+  Group G: Egypt                     (19.3%)
+  Group I: Norway                    (19.1%)
+
+✓ = auto-qualifies (top 2 in group)
