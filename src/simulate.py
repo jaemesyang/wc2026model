@@ -61,19 +61,41 @@ def _get_elo(elo_ratings: dict, team: str) -> float:
     return float(elo_ratings.get(team, _DEFAULT_ELO))
 
 
+def precompute_match_matrices(model: PoissonModel) -> dict:
+    """
+    Compute scoreline probability matrices once for every group matchup.
+    Returns {(home, away): (flat_probs, n_goals+1)} for Poisson-covered pairs.
+    Pass the result as _cache to simulate_match / simulate_group / run_group_stage.
+    """
+    cache = {}
+    for teams in GROUPS.values():
+        for home, away in combinations(teams, 2):
+            if model.has_team(home) and model.has_team(away):
+                mat = model.predict_scoreline_probs(home, away, neutral=True)
+                cache[(home, away)] = (mat.flatten(), mat.shape[0])
+    return cache
+
+
 def simulate_match(
     home: str,
     away: str,
     model: PoissonModel,
     elo_ratings: dict,
     neutral: bool = True,
+    _cache: Optional[dict] = None,
 ) -> tuple:
     """
     Sample one match outcome. Returns (home_goals, away_goals).
 
     Uses Poisson joint distribution when both teams are in the fitted model;
     falls back to Elo-based outcome sampling otherwise.
+    Pass _cache (from precompute_match_matrices) to skip matrix recomputation.
     """
+    if _cache is not None and (home, away) in _cache:
+        flat, n = _cache[(home, away)]
+        idx = np.random.choice(len(flat), p=flat)
+        return int(idx // n), int(idx % n)
+
     if model.has_team(home) and model.has_team(away):
         mat = model.predict_scoreline_probs(home, away, neutral=neutral)
         flat = mat.flatten()
@@ -165,6 +187,7 @@ def simulate_group(
     group_teams: list,
     model: PoissonModel,
     elo_ratings: dict,
+    _cache: Optional[dict] = None,
 ) -> pd.DataFrame:
     """
     Simulate a round-robin group. Returns a standings DataFrame with columns:
@@ -180,7 +203,7 @@ def simulate_group(
     }
 
     for home, away in combinations(group_teams, 2):
-        hg, ag = simulate_match(home, away, model, elo_ratings, neutral=True)
+        hg, ag = simulate_match(home, away, model, elo_ratings, neutral=True, _cache=_cache)
 
         records[home]["gf"] += hg
         records[home]["ga"] += ag
@@ -236,15 +259,95 @@ def simulate_group(
 def select_best_thirds(third_entries: list) -> list:
     """
     Select the 8 best third-place teams from 12 groups.
-
-    Ranking criteria (FIFA): points → GD → GF → (omit fair play / lots in sim).
-    Returns a list of 8 team names.
+    Ranking criteria (FIFA): points → GD → GF.
     """
-    df = pd.DataFrame(third_entries)
-    df = df.sort_values(
-        ["points", "gd", "gf"], ascending=False
-    ).reset_index(drop=True)
-    return df.head(8)["team"].tolist()
+    return [
+        e["team"]
+        for e in sorted(third_entries, key=lambda x: (-x["points"], -x["gd"], -x["gf"]))
+    ][:8]
+
+
+def presample_match_results(cache: dict, n_sims: int) -> dict:
+    """
+    Vectorised: draw all n_sims results for every group matchup in one numpy call each.
+    Returns {(home, away): ([hg_0..hg_n], [ag_0..ag_n])} as Python lists.
+    Much faster than calling np.random.choice once per simulation per match.
+    """
+    presampled: dict = {}
+    for (home, away), (flat, n) in cache.items():
+        idxs = np.random.choice(len(flat), size=n_sims, p=flat)
+        presampled[(home, away)] = ((idxs // n).tolist(), (idxs % n).tolist())
+    return presampled
+
+
+def _simulate_group_fast(
+    group_teams: list,
+    presampled: dict,
+    sim_idx: int,
+    model: PoissonModel,
+    elo_ratings: dict,
+) -> list:
+    """
+    Hot-path group simulation — no pandas, uses pre-sampled match results.
+    Returns list of (team, rank, points, gd, gf, ga) tuples.
+    """
+    records = {t: [0, 0, 0, 0] for t in group_teams}  # [pts, gd, gf, ga]
+    h2h: dict = {
+        t: {opp: [0, 0] for opp in group_teams if opp != t}  # [h2h_pts, h2h_gd]
+        for t in group_teams
+    }
+
+    for home, away in combinations(group_teams, 2):
+        if (home, away) in presampled:
+            hg = presampled[(home, away)][0][sim_idx]
+            ag = presampled[(home, away)][1][sim_idx]
+        else:
+            hg, ag = simulate_match(home, away, model, elo_ratings, neutral=True)
+
+        rh = records[home]; ra = records[away]
+        rh[2] += hg; rh[3] += ag; rh[1] += hg - ag
+        ra[2] += ag; ra[3] += hg; ra[1] += ag - hg
+
+        if hg > ag:
+            rh[0] += 3
+            h2h[home][away][0] += 3
+            h2h[home][away][1] += hg - ag
+            h2h[away][home][1] += ag - hg
+        elif hg == ag:
+            rh[0] += 1; ra[0] += 1
+            h2h[home][away][0] += 1
+            h2h[away][home][0] += 1
+        else:
+            ra[0] += 3
+            h2h[away][home][0] += 3
+            h2h[away][home][1] += ag - hg
+            h2h[home][away][1] += hg - ag
+
+    # Re-wrap into the dict format _sort_tied_group expects
+    rec_dict = {
+        t: {"points": r[0], "gd": r[1], "gf": r[2], "ga": r[3]}
+        for t, r in records.items()
+    }
+    h2h_dict = {
+        t: {opp: {"points": v[0], "gd": v[1]} for opp, v in opp_map.items()}
+        for t, opp_map in h2h.items()
+    }
+
+    by_pts = sorted(group_teams, key=lambda t: -rec_dict[t]["points"])
+    sorted_teams: list = []
+    i = 0
+    while i < len(by_pts):
+        j = i + 1
+        while j < len(by_pts) and rec_dict[by_pts[j]]["points"] == rec_dict[by_pts[i]]["points"]:
+            j += 1
+        sorted_teams.extend(_sort_tied_group(by_pts[i:j], rec_dict, h2h_dict))
+        i = j
+
+    return [
+        (team, rank, rec_dict[team]["points"], rec_dict[team]["gd"],
+         rec_dict[team]["gf"], rec_dict[team]["ga"])
+        for rank, team in enumerate(sorted_teams, 1)
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -265,36 +368,33 @@ def run_group_stage(
       rank_df    — one row per team with per-position finish probabilities
                    columns: team, group, p1, p2, p3, p4, mode_rank, expected_rank
     """
+    cache      = precompute_match_matrices(model)
+    presampled = presample_match_results(cache, n_sims)
+
     all_teams = [(team, group) for group, teams in GROUPS.items() for team in teams]
     advance_counts: dict = {t: 0 for t, _ in all_teams}
     top2_counts:   dict = {t: 0 for t, _ in all_teams}
     rank_counts:   dict = {t: {1: 0, 2: 0, 3: 0, 4: 0} for t, _ in all_teams}
 
-    for _ in range(n_sims):
+    for sim_idx in range(n_sims):
         third_entries = []
 
         for group_name, teams in GROUPS.items():
-            standings = simulate_group(teams, model, elo_ratings)
+            standings = _simulate_group_fast(teams, presampled, sim_idx, model, elo_ratings)
+            # standings: [(team, rank, pts, gd, gf, ga), ...]
 
-            for _, row in standings.iterrows():
-                rank_counts[row["team"]][int(row["rank"])] += 1
+            for team, rank, pts, gd, gf, ga in standings:
+                rank_counts[team][rank] += 1
+                if rank <= 2:
+                    advance_counts[team] += 1
+                    top2_counts[team] += 1
+                elif rank == 3:
+                    third_entries.append({
+                        "team": team, "group": group_name,
+                        "points": pts, "gd": gd, "gf": gf,
+                    })
 
-            top2 = standings[standings["rank"] <= 2]["team"].tolist()
-            for t in top2:
-                advance_counts[t] += 1
-                top2_counts[t] += 1
-
-            row3 = standings[standings["rank"] == 3].iloc[0]
-            third_entries.append({
-                "team":   row3["team"],
-                "group":  group_name,
-                "points": int(row3["points"]),
-                "gd":     int(row3["gd"]),
-                "gf":     int(row3["gf"]),
-            })
-
-        best_thirds = select_best_thirds(third_entries)
-        for t in best_thirds:
+        for t in select_best_thirds(third_entries):
             advance_counts[t] += 1
 
     advance_rows = []

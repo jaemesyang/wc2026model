@@ -20,6 +20,13 @@ import pandas as pd
 from scipy.optimize import minimize
 from scipy.stats import poisson
 
+# Precomputed log-factorials for goals 0..10 (avoids per-call scipy overhead in PMF)
+_MAX_GOALS_FAST = 10
+_LOG_FACT = np.zeros(_MAX_GOALS_FAST + 1)
+for _k in range(2, _MAX_GOALS_FAST + 1):
+    _LOG_FACT[_k] = _LOG_FACT[_k - 1] + np.log(_k)
+_GOALS_FAST = np.arange(_MAX_GOALS_FAST + 1, dtype=float)
+
 DATA_DIR = Path(__file__).parent.parent / "data"
 MODEL_CACHE = DATA_DIR / "poisson_params.json"
 
@@ -233,11 +240,22 @@ class PoissonModel:
         Return an (max_goals+1) × (max_goals+1) matrix where
         P[i, j] = P(home scores i goals, away scores j goals).
         Rows = home goals, columns = away goals.
+
+        Uses pure numpy for the PMF (log-space: k*log(mu) - mu - log(k!))
+        to avoid scipy per-call dispatch overhead in tight simulation loops.
         """
         mu_h, mu_a = self._expected_goals(home, away, neutral)
-        goals = np.arange(max_goals + 1)
-        p_h = poisson.pmf(goals, mu_h)
-        p_a = poisson.pmf(goals, mu_a)
+        if max_goals == _MAX_GOALS_FAST:
+            goals, log_fact = _GOALS_FAST, _LOG_FACT
+        else:
+            goals = np.arange(max_goals + 1, dtype=float)
+            log_fact = np.zeros(max_goals + 1)
+            for k in range(2, max_goals + 1):
+                log_fact[k] = log_fact[k - 1] + np.log(k)
+        log_mu_h = np.log(max(mu_h, 1e-10))
+        log_mu_a = np.log(max(mu_a, 1e-10))
+        p_h = np.exp(goals * log_mu_h - mu_h - log_fact)
+        p_a = np.exp(goals * log_mu_a - mu_a - log_fact)
         mat = np.outer(p_h, p_a)
         return mat / mat.sum()  # renormalise after truncation
 

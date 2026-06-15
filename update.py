@@ -27,6 +27,8 @@ from simulate import (
     N_SIMS,
     PREDICTIONS_DIR,
     _sort_tied_group,
+    precompute_match_matrices,
+    presample_match_results,
     select_best_thirds,
     simulate_match,
     write_predictions,
@@ -53,17 +55,17 @@ def _load_known_results() -> dict:
 # Partial simulation (locks in known results, simulates the rest)
 # ---------------------------------------------------------------------------
 
-def _simulate_group_partial(
+def _simulate_group_partial_fast(
     group_teams: list,
+    presampled: dict,
+    sim_idx: int,
+    known_results: dict,
     model: PoissonModel,
     elo_ratings: dict,
-    known_results: dict,
-) -> pd.DataFrame:
+) -> list:
     """
-    Round-robin group simulation that uses real scores for already-played matches
-    and draws from the Poisson/Elo model for the rest.
-
-    known_results: {(home_team, away_team): (home_goals, away_goals)}
+    Hot-path partial group sim: known results fixed, rest from presampled.
+    Returns list of (team, rank, points, gd, gf, ga) tuples — no pandas.
     """
     records = {t: {"points": 0, "gd": 0, "gf": 0, "ga": 0} for t in group_teams}
     h2h: dict = {
@@ -75,17 +77,15 @@ def _simulate_group_partial(
         if (home, away) in known_results:
             hg, ag = known_results[(home, away)]
         elif (away, home) in known_results:
-            # stored with teams swapped — flip the scores back
             ag, hg = known_results[(away, home)]
+        elif (home, away) in presampled:
+            hg = presampled[(home, away)][0][sim_idx]
+            ag = presampled[(home, away)][1][sim_idx]
         else:
             hg, ag = simulate_match(home, away, model, elo_ratings, neutral=True)
 
-        records[home]["gf"] += hg
-        records[home]["ga"] += ag
-        records[home]["gd"] += hg - ag
-        records[away]["gf"] += ag
-        records[away]["ga"] += hg
-        records[away]["gd"] += ag - hg
+        records[home]["gf"] += hg; records[home]["ga"] += ag; records[home]["gd"] += hg - ag
+        records[away]["gf"] += ag; records[away]["ga"] += hg; records[away]["gd"] += ag - hg
 
         if hg > ag:
             records[home]["points"] += 3
@@ -93,10 +93,8 @@ def _simulate_group_partial(
             h2h[home][away]["gd"] += hg - ag
             h2h[away][home]["gd"] += ag - hg
         elif hg == ag:
-            records[home]["points"] += 1
-            records[away]["points"] += 1
-            h2h[home][away]["points"] += 1
-            h2h[away][home]["points"] += 1
+            records[home]["points"] += 1; records[away]["points"] += 1
+            h2h[home][away]["points"] += 1; h2h[away][home]["points"] += 1
         else:
             records[away]["points"] += 3
             h2h[away][home]["points"] += 3
@@ -110,17 +108,14 @@ def _simulate_group_partial(
         j = i + 1
         while j < len(by_pts) and records[by_pts[j]]["points"] == records[by_pts[i]]["points"]:
             j += 1
-        cluster = by_pts[i:j]
-        sorted_teams.extend(_sort_tied_group(cluster, records, h2h))
+        sorted_teams.extend(_sort_tied_group(by_pts[i:j], records, h2h))
         i = j
 
-    rows = []
-    for rank, team in enumerate(sorted_teams, 1):
-        r = records[team]
-        rows.append({"team": team, "rank": rank,
-                     "points": r["points"], "gd": r["gd"],
-                     "gf": r["gf"], "ga": r["ga"]})
-    return pd.DataFrame(rows)
+    return [
+        (team, rank, records[team]["points"], records[team]["gd"],
+         records[team]["gf"], records[team]["ga"])
+        for rank, team in enumerate(sorted_teams, 1)
+    ]
 
 
 def _run_group_stage_partial(
@@ -133,36 +128,33 @@ def _run_group_stage_partial(
     Monte Carlo group stage with real results locked in.
     Returns (advance_df, rank_df) — same schema as simulate.run_group_stage.
     """
+    cache      = precompute_match_matrices(model)
+    presampled = presample_match_results(cache, n_sims)
+
     all_teams = [(team, group) for group, teams in GROUPS.items() for team in teams]
     advance_counts: dict = {t: 0 for t, _ in all_teams}
     top2_counts:   dict = {t: 0 for t, _ in all_teams}
     rank_counts:   dict = {t: {1: 0, 2: 0, 3: 0, 4: 0} for t, _ in all_teams}
 
-    for _ in range(n_sims):
+    for sim_idx in range(n_sims):
         third_entries = []
 
         for group_name, teams in GROUPS.items():
-            standings = _simulate_group_partial(teams, model, elo_ratings, known_results)
+            standings = _simulate_group_partial_fast(
+                teams, presampled, sim_idx, known_results, model, elo_ratings
+            )
+            for team, rank, pts, gd, gf, ga in standings:
+                rank_counts[team][rank] += 1
+                if rank <= 2:
+                    advance_counts[team] += 1
+                    top2_counts[team] += 1
+                elif rank == 3:
+                    third_entries.append({
+                        "team": team, "group": group_name,
+                        "points": pts, "gd": gd, "gf": gf,
+                    })
 
-            for _, row in standings.iterrows():
-                rank_counts[row["team"]][int(row["rank"])] += 1
-
-            top2 = standings[standings["rank"] <= 2]["team"].tolist()
-            for t in top2:
-                advance_counts[t] += 1
-                top2_counts[t] += 1
-
-            row3 = standings[standings["rank"] == 3].iloc[0]
-            third_entries.append({
-                "team":   row3["team"],
-                "group":  group_name,
-                "points": int(row3["points"]),
-                "gd":     int(row3["gd"]),
-                "gf":     int(row3["gf"]),
-            })
-
-        best_thirds = select_best_thirds(third_entries)
-        for t in best_thirds:
+        for t in select_best_thirds(third_entries):
             advance_counts[t] += 1
 
     advance_rows, rank_rows = [], []
