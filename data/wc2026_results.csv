@@ -11,27 +11,67 @@ date,home_team,away_team,home_score,away_score,tournament,city,country,neutral
 2026-06-14,Australia,Turkey,2,0,FIFA World Cup,,,True
 2026-06-14,Brazil,Morocco,1,1,FIFA World Cup,,,True
 2026-06-14,Germany,Curaçao,7,1,FIFA World Cup,,,True
-2026-06-15,Germany,Curaçao,7,1,FIFA World Cup,,,True
+2026-06-15,Ivory Coast,Ecuador,1,0,FIFA World Cup,,,True
 2026-06-15,Netherlands,Japan,2,2,FIFA World Cup,,,True
 2026-06-15,Sweden,Tunisia,5,1,FIFA World Cup,,,True
-2026-06-15,Ivory Coast,Ecuador,1,0,FIFA World Cup,,,True
+2026-06-15,Germany,Curaçao,7,1,FIFA World Cup,,,True
 2026-06-15,Iran,New Zealand,2,2,FIFA World Cup,,,True
 2026-06-15,Saudi Arabia,Uruguay,1,1,FIFA World Cup,,,True
-2026-06-15,Spain,Cape Verde,0,0,FIFA World Cup,,,True
 2026-06-15,Belgium,Egypt,1,1,FIFA World Cup,,,True
+2026-06-15,Spain,Cape Verde,0,0,FIFA World Cup,,,True
 2026-06-19,Argentina,Algeria,3,0,FIFA World Cup,,,True
-2026-06-19,Scotland,Morocco,0,1,FIFA World Cup,,,True
-2026-06-19,Iraq,Norway,1,4,FIFA World Cup,,,True
-2026-06-19,Mexico,South Korea,1,0,FIFA World Cup,,,True
-2026-06-19,France,Senegal,3,1,FIFA World Cup,,,True
-2026-06-19,Switzerland,Bosnia and Herzegovina,4,1,FIFA World Cup,,,True
-2026-06-19,Uzbekistan,Colombia,1,3,FIFA World Cup,,,True
-2026-06-19,Portugal,DR Congo,1,1,FIFA World Cup,,,True
-2026-06-19,Ghana,Panama,1,0,FIFA World Cup,,,True
-2026-06-19,Czech Republic,South Africa,1,1,FIFA World Cup,,,True
-2026-06-19,Canada,Qatar,6,0,FIFA World Cup,,,True
-2026-06-19,United States,Australia,2,0,FIFA World Cup,,,True
-2026-06-19,Austria,Jordan,3,1,FIFA World Cup,,,True
-2026-06-19,Brazil,Haiti,3,0,FIFA World Cup,,,True
-2026-06-19,England,Croatia,4,2,FIFA World Cup,,,True
 2026-06-19,Turkey,Paraguay,0,1,FIFA World Cup,,,True
+2026-06-19,Switzerland,Bosnia and Herzegovina,4,1,FIFA World Cup,,,True
+2026-06-19,France,Senegal,3,1,FIFA World Cup,,,True
+2026-06-19,Portugal,DR Congo,1,1,FIFA World Cup,,,True
+2026-06-19,Iraq,Norway,1,4,FIFA World Cup,,,True
+2026-06-19,Scotland,Morocco,0,1,FIFA World Cup,,,True
+2026-06-19,Mexico,South Korea,1,0,FIFA World Cup,,,True
+2026-06-19,Canada,Qatar,6,0,FIFA World Cup,,,True
+2026-06-19,Brazil,Haiti,3,0,FIFA World Cup,,,True
+2026-06-19,Uzbekistan,Colombia,1,3,FIFA World Cup,,,True
+2026-06-19,Ghana,Panama,1,0,FIFA World Cup,,,True
+2026-06-19,Austria,Jordan,3,1,FIFA World Cup,,,True
+2026-06-19,United States,Australia,2,0,FIFA World Cup,,,True
+2026-06-19,England,Croatia,4,2,FIFA World Cup,,,True
+2026-06-19,Czech Republic,South Africa,1,1,FIFA World Cup,,,True
+2026-06-27,DR Congo,Uzbekistan,3,1,FIFA World Cup,,,True
+2026-06-27,South Africa,South Korea,1,0,FIFA World Cup,,,True
+2026-06-27,Switzerland,Canada,2,1,FIFA World Cup,,,True
+2026-06-27,Norway,Senegal,3,2,FIFA World Cup,,,True
+2026-06-27,Ecuador,Curaçao,0,0,FIFA World Cup,,,True
+2026-06-27,Czech Republic,Mexico,0,3,FIFA World Cup,,,True
+2026-06-27,Scotland,Brazil,0,3,FIFA World Cup,,,True
+2026-06-27,Senegal,Iraq,5,0,FIFA World Cup,,,True
+2026-06-27,England,Ghana,0,0,FIFA World Cup,,,True
+2026-06-27,Japan,Sweden,1,1,FIFA World Cup,,,True
+2026-06-27,Spain,Saudi Arabia,4,0,FIFA World Cup,,,True
+2026-06-27,Croatia,Ghana,2,1,FIFA World Cup,,,True
+2026-06-27,Uruguay,Cape Verde,2,2,FIFA World Cup,,,True
+2026-06-27,New Zealand,Egypt,1,3,FIFA World Cup,,,True
+2026-06-27,Germany,Ivory Coast,2,1,FIFA World Cup,,,True
+2026-06-27,Uruguay,Spain,0,1,FIFA World Cup,,,True
+2026-06-27,Panama,England,0,2,FIFA World Cup,,,True
+2026-06-27,Egypt,Iran,1,1,FIFA World Cup,,,True
+2026-06-27,Tunisia,Japan,0,4,FIFA World Cup,,,True
+2026-06-27,Norway,France,1,4,FIFA World Cup,,,True
+2026-06-27,Belgium,Iran,0,0,FIFA World Cup,,,True
+2026-06-27,Colombia,Portugal,0,0,FIFA World Cup,,,True
+2026-06-27,Algeria,Austria,3,3,FIFA World Cup,,,True
+2026-06-27,Tunisia,Netherlands,1,3,FIFA World Cup,,,True
+2026-06-27,Morocco,Haiti,4,2,FIFA World Cup,,,True
+2026-06-27,Portugal,Uzbekistan,5,0,FIFA World Cup,,,True
+2026-06-27,Netherlands,Sweden,5,1,FIFA World Cup,,,True
+2026-06-27,Bosnia and Herzegovina,Qatar,3,1,FIFA World Cup,,,True
+2026-06-27,Paraguay,Australia,0,0,FIFA World Cup,,,True
+2026-06-27,Cape Verde,Saudi Arabia,0,0,FIFA World Cup,,,True
+2026-06-27,France,Iraq,3,0,FIFA World Cup,,,True
+2026-06-27,New Zealand,Belgium,1,5,FIFA World Cup,,,True
+2026-06-27,Panama,Croatia,0,1,FIFA World Cup,,,True
+2026-06-27,Jordan,Algeria,1,2,FIFA World Cup,,,True
+2026-06-27,Argentina,Austria,2,0,FIFA World Cup,,,True
+2026-06-27,Colombia,DR Congo,1,0,FIFA World Cup,,,True
+2026-06-27,Turkey,United States,3,2,FIFA World Cup,,,True
+2026-06-27,Curaçao,Ivory Coast,0,2,FIFA World Cup,,,True
+2026-06-27,Ecuador,Germany,2,1,FIFA World Cup,,,True
+2026-06-27,Jordan,Argentina,1,3,FIFA World Cup,,,True
