@@ -6,7 +6,7 @@ Scored against real results, the model hit a Brier score of 0.560 across the 72-
 
 ## Predicted Champion: Argentina
 
-​```
+```
 — Round of 32 —
   M73    Canada (73%)        def. South Africa
   M74    Germany (62%)       def. Paraguay
@@ -47,8 +47,6 @@ Scored against real results, the model hit a Brier score of 0.560 across the 72-
 
 — Final —
   Argentina (63%)            def. Colombia
-​```
+```
 
-## Known weaknesses
 
-The model has no player-level data — it works purely off national-team results, so it underrates teams with strong squads but patchy qualifying records (this is why it picks some European favorites to lose early). It also underweights draws: across the group stage, draws were its single biggest source of error.
