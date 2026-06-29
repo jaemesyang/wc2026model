@@ -21,7 +21,7 @@ Predicts the 2026 World Cup with an calibrated elo system made with a dixon cole
   M87    Portugal (66%)  def. Croatia
   M88    Australia (63%)  def. Egypt
 
-                      — Round of 16 —                       
+  — Round of 16 —                       
 
   M89    France (62%)  def. Germany
   M90    Morocco (53%)  def. Canada
@@ -32,14 +32,14 @@ Predicts the 2026 World Cup with an calibrated elo system made with a dixon cole
   M95    Argentina (77%)  def. Australia
   M96    Spain (80%)  def. Switzerland
 
-                     — Quarterfinals —                      
+  — Quarterfinals —                      
 
   M97    France (60%)  def. Morocco
   M98    Colombia (70%)  def. Belgium
   M99    Brazil (60%)  def. England
   M100   Argentina (60%)  def. Spain
 
-                       — Semifinals —                       
+  — Semifinals —                       
 
   M101   Colombia (61%)  def. France
   M102   Argentina (64%)  def. Brazil
