@@ -4,6 +4,13 @@ Predicts the 2026 World Cup with a Poisson model fit on ~49,000 international ma
 
 Scored against real results, the model hit a Brier score of 0.560 across the 72-match group stage, beating the 0.667 coin-flip baseline.
 
+## How it did
+
+Final tournament Brier: 0.534 across all 103 matches, beating the 0.667 coin flip baseline. Knockout rounds scored better than group stage, since there are usually less upsets in the knockout stage. The actual champion was Spain while we predicted Argentina, though the model predicted Spain reaching the semifinals. 80% of the Round of 32 were called correctly. 
+
+The two biggest busts were Brazil and Colombia, semi-finalist and finalist, respectively. These highlight the models week spot, with no player-level data, it overrrates and inflates teams' ratings that have strong results but thninger squad. This particularly affected a lot of South America sides, and it failed exactly as predicted. 
+
+
 ## Predicted Champion: Argentina
 
 ```
