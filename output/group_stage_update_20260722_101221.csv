@@ -1,0 +1,49 @@
+team,group,advance_prob,top2_prob,via_third_prob
+Mexico,A,1.0,1.0,0.0
+Netherlands,F,1.0,1.0,0.0
+Sweden,F,1.0,0.0,1.0
+South Africa,A,1.0,1.0,0.0
+Egypt,G,1.0,1.0,0.0
+Spain,H,1.0,1.0,0.0
+Cape Verde,H,1.0,1.0,0.0
+France,I,1.0,1.0,0.0
+Senegal,I,1.0,0.0,1.0
+Norway,I,1.0,1.0,0.0
+Argentina,J,1.0,1.0,0.0
+Algeria,J,1.0,0.0,1.0
+Austria,J,1.0,1.0,0.0
+Portugal,K,1.0,1.0,0.0
+DR Congo,K,1.0,0.0,1.0
+Colombia,K,1.0,1.0,0.0
+England,L,1.0,1.0,0.0
+Croatia,L,1.0,1.0,0.0
+Ghana,L,1.0,0.0,1.0
+Japan,F,1.0,1.0,0.0
+Belgium,G,1.0,1.0,0.0
+Ecuador,E,1.0,0.0,1.0
+Morocco,C,1.0,1.0,0.0
+Germany,E,1.0,1.0,0.0
+Canada,B,1.0,1.0,0.0
+Bosnia and Herzegovina,B,1.0,0.0,1.0
+Australia,D,1.0,1.0,0.0
+Switzerland,B,1.0,1.0,0.0
+Paraguay,D,1.0,0.0,1.0
+United States,D,1.0,1.0,0.0
+Ivory Coast,E,1.0,1.0,0.0
+Brazil,C,1.0,1.0,0.0
+South Korea,A,0.0,0.0,0.0
+Czech Republic,A,0.0,0.0,0.0
+Uzbekistan,K,0.0,0.0,0.0
+Qatar,B,0.0,0.0,0.0
+Jordan,J,0.0,0.0,0.0
+Iraq,I,0.0,0.0,0.0
+Haiti,C,0.0,0.0,0.0
+Scotland,C,0.0,0.0,0.0
+Uruguay,H,0.0,0.0,0.0
+Saudi Arabia,H,0.0,0.0,0.0
+Turkey,D,0.0,0.0,0.0
+New Zealand,G,0.0,0.0,0.0
+Iran,G,0.0,0.0,0.0
+Curaçao,E,0.0,0.0,0.0
+Tunisia,F,0.0,0.0,0.0
+Panama,L,0.0,0.0,0.0
